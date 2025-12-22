@@ -1,1 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Job Dashboard</title>
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header>
+    <h1>Job Dashboard</h1>
+    <p class="sub">Auto-updated by GitHub Actions</p>
+
+    <div class="links">
+      <a class="btn" target="_blank" href="https://www.linkedin.com/jobs/search/?keywords=wildfire%20gis%20remote%20sensing">LinkedIn Search</a>
+      <a class="btn" target="_blank" href="https://www.indeed.com/jobs?q=wildfire+gis+remote+sensing">Indeed Search</a>
+      <a class="btn" target="_blank" href="https://www.google.com/search?q=wildfire+gis+postdoc+jobs">Google Search</a>
+      <a class="btn" target="_blank" href="https://www.usajobs.gov/Search/?k=geospatial%20wildfire">USAJOBS Search</a>
+    </div>
+  </header>
+
+  <main>
+    <div class="controls">
+      <input id="q" placeholder="Filter (e.g., 'postdoc', 'python', 'remote')" />
+      <select id="source"></select>
+    </div>
+
+    <div id="meta" class="meta"></div>
+    <div id="list" class="list"></div>
+  </main>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
 
