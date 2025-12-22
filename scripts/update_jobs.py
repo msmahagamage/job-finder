@@ -10,6 +10,7 @@ KEYWORDS = [
     "traffic", "transportation", "hazard", "disaster",
     "remote sensing", "modeling", "simulation"
 ]
+
 EXCLUDE_PHRASES = [
     "u.s. citizen only",
     "us citizen only",
@@ -22,41 +23,14 @@ EXCLUDE_PHRASES = [
     "clearance required"
 ]
 
-
 def now():
     return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
 
 def relevant(text):
     t = text.lower()
-
-    # Exclude restricted jobs
     if any(p in t for p in EXCLUDE_PHRASES):
         return False
-
-    # Keep only relevant keywords
     return any(k in t for k in KEYWORDS)
-
-
-def fetch_remotive(q):
-    url = "https://remotive.com/api/remote-jobs"
-    r = requests.get(url, params={"search": q}, timeout=30)
-    r.raise_for_status()
-    jobs = []
-
-    for j in r.json().get("jobs", []):
-        text = f"{j.get('title','')} {j.get('description','')}"
-        if not relevant(text):
-            continue
-
-        jobs.append({
-            "source": "Remotive",
-            "title": j["title"],
-            "company": j["company_name"],
-            "location": j["candidate_required_location"],
-            "url": j["url"],
-            "summary": j["description"][:250].replace("\n", " ")
-        })
-    return jobs
 
 def fetch_usajobs(q):
     email = os.environ.get("USAJOBS_EMAIL")
@@ -64,15 +38,29 @@ def fetch_usajobs(q):
     if not email or not key:
         return []
 
-    headers = {"User-Agent": email, "Authorization-Key": key}
+    headers = {
+        "User-Agent": email,
+        "Authorization-Key": key
+    }
+
     url = "https://data.usajobs.gov/api/search"
-    r = requests.get(url, headers=headers, params={"Keyword": q}, timeout=30)
-    r.raise_for_status()
+    r = requests.get(
+        url,
+        headers=headers,
+        params={"Keyword": q, "ResultsPerPage": 50},
+        timeout=30
+    )
+
+    if r.status_code != 200:
+        return []
 
     jobs = []
-    for it in r.json()["SearchResult"]["SearchResultItems"]:
+    items = r.json()["SearchResult"]["SearchResultItems"]
+
+    for it in items:
         m = it["MatchedObjectDescriptor"]
         text = f"{m.get('PositionTitle','')} {m.get('UserArea',{})}"
+
         if not relevant(text):
             continue
 
@@ -84,6 +72,7 @@ def fetch_usajobs(q):
             "url": m["PositionURI"],
             "summary": m.get("UserArea", {}).get("Details", {}).get("JobSummary", "")[:250]
         })
+
     return jobs
 
 def main():
@@ -91,10 +80,7 @@ def main():
     all_jobs = []
 
     for q in cfg["queries"]:
-        if cfg["remotive"]:
-            all_jobs += fetch_remotive(q)
-        if cfg["usajobs"]:
-            all_jobs += fetch_usajobs(q)
+        all_jobs += fetch_usajobs(q)
         time.sleep(0.5)
 
     # Deduplicate
@@ -113,4 +99,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
