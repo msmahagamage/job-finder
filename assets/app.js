@@ -9,9 +9,11 @@ async function load() {
 
   // Build source dropdown
   const sources = ["All", ...new Set(data.jobs.map(j => j.source))].sort();
-  sourceEl.innerHTML = sources.map(s => `<option value="${s}">${s}</option>`).join("");
+  sourceEl.innerHTML = sources
+    .map(s => `<option value="${s}">${s}</option>`)
+    .join("");
 
-  // ---- Job classification (your research areas) ----
+  // ---- Job classification (your focus areas) ----
   function classify(job) {
     const t = (job.title + " " + job.summary).toLowerCase();
     if (t.includes("traffic") || t.includes("transport")) return "Traffic";
@@ -21,19 +23,20 @@ async function load() {
     return "Modeling";
   }
 
-  // ---- Visa friendliness check ----
-  function visaLabel(job) {
+  // ---- USAJOBS eligibility signal (NOT a guarantee) ----
+  function eligibilityLabel(job) {
     const t = (job.title + " " + job.summary).toLowerCase();
     if (
       t.includes("u.s. citizen") ||
       t.includes("us citizen") ||
+      t.includes("citizenship required") ||
       t.includes("security clearance") ||
       t.includes("secret clearance") ||
       t.includes("top secret")
     ) {
-      return " Restricted";
+      return " Likely Restricted";
     }
-    return "Visa-Friendly";
+    return " Check Eligibility";
   }
 
   function render() {
@@ -52,7 +55,9 @@ async function load() {
     listEl.innerHTML = filtered.map(j => `
       <article class="card">
         <h3>
-          <a target="_blank" href="${j.url}">${j.title}</a>
+          <a target="_blank" rel="noopener noreferrer" href="${j.url}">
+            ${j.title}
+          </a>
         </h3>
 
         <div class="row">
@@ -63,7 +68,7 @@ async function load() {
         <div class="row">
           <span class="tag">${j.source}</span>
           <span class="tag">${classify(j)}</span>
-          <span class="tag">${visaLabel(j)}</span>
+          <span class="tag">${eligibilityLabel(j)}</span>
         </div>
 
         <p>${j.summary || ""}</p>
