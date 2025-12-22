@@ -1,0 +1,10 @@
+{
+  "queries": [
+    "wildfire GIS",
+    "remote sensing fire",
+    "geospatial postdoc hazards",
+    "disaster risk python"
+  ],
+  "remotive": true,
+  "usajobs": true
+}
