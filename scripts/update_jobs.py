@@ -28,7 +28,14 @@ def now():
 
 def relevant(text):
     t = text.lower()
+
+    # Exclude restricted jobs
+    if any(p in t for p in EXCLUDE_PHRASES):
+        return False
+
+    # Keep only relevant keywords
     return any(k in t for k in KEYWORDS)
+
 
 def fetch_remotive(q):
     url = "https://remotive.com/api/remote-jobs"
@@ -106,3 +113,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
