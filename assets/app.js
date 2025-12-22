@@ -7,8 +7,34 @@ async function load() {
   const qEl = document.getElementById("q");
   const sourceEl = document.getElementById("source");
 
+  // Build source dropdown
   const sources = ["All", ...new Set(data.jobs.map(j => j.source))].sort();
-  sourceEl.innerHTML = sources.map(s => `<option>${s}</option>`).join("");
+  sourceEl.innerHTML = sources.map(s => `<option value="${s}">${s}</option>`).join("");
+
+  // ---- Job classification (your research areas) ----
+  function classify(job) {
+    const t = (job.title + " " + job.summary).toLowerCase();
+    if (t.includes("traffic") || t.includes("transport")) return "Traffic";
+    if (t.includes("evacuation")) return "Evacuation";
+    if (t.includes("wildfire") || t.includes("fire")) return "Wildfire";
+    if (t.includes("gis") || t.includes("geospatial")) return "GIS";
+    return "Modeling";
+  }
+
+  // ---- Visa friendliness check ----
+  function visaLabel(job) {
+    const t = (job.title + " " + job.summary).toLowerCase();
+    if (
+      t.includes("u.s. citizen") ||
+      t.includes("us citizen") ||
+      t.includes("security clearance") ||
+      t.includes("secret clearance") ||
+      t.includes("top secret")
+    ) {
+      return " Restricted";
+    }
+    return "Visa-Friendly";
+  }
 
   function render() {
     const q = (qEl.value || "").toLowerCase();
@@ -21,15 +47,25 @@ async function load() {
       return okQ && okS;
     });
 
-    metaEl.textContent = `Last updated: ${data.updated_at} • Jobs: ${filtered.length}`;
+    metaEl.textContent = `Last updated: ${data.updated_at} • Jobs shown: ${filtered.length}`;
+
     listEl.innerHTML = filtered.map(j => `
       <article class="card">
-        <h3><a target="_blank" href="${j.url}">${j.title}</a></h3>
+        <h3>
+          <a target="_blank" href="${j.url}">${j.title}</a>
+        </h3>
+
         <div class="row">
           <span><b>${j.company}</b></span>
           <span>${j.location || ""}</span>
-          <span class="tag">${j.source}</span>
         </div>
+
+        <div class="row">
+          <span class="tag">${j.source}</span>
+          <span class="tag">${classify(j)}</span>
+          <span class="tag">${visaLabel(j)}</span>
+        </div>
+
         <p>${j.summary || ""}</p>
       </article>
     `).join("");
@@ -37,6 +73,8 @@ async function load() {
 
   qEl.addEventListener("input", render);
   sourceEl.addEventListener("change", render);
+
   render();
 }
+
 load();
